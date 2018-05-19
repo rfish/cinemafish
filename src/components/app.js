@@ -4,6 +4,7 @@ import '../style/app.css';
 
 import Auth from './auth';
 import MovieList from './movie_list';
+import ListPicker from './list_picker'
 
 import _axios from '../util/networkInterface.js';
 import _ from 'lodash';
@@ -12,11 +13,17 @@ class App extends Component {
   constructor(props) {
     super(props);
 
+    const LS_SESSION_KEY = 'LS_SESSION_KEY';
+    const existingSessionId = localStorage.getItem(LS_SESSION_KEY);
+
     this.state = {
       account_id: null,
       request_token: null,
-      session_id: null,
-      require_authorization: true
+      session_id: existingSessionId,
+      require_authorization: true,
+      selectedList: null,
+      lists: null,
+      movies: null
     };
   }
 
@@ -36,8 +43,17 @@ class App extends Component {
 
   fetchAccountDetails = async () => {
     const { session_id } = this.state;
-    let { data: { id } } = await _axios.get("/account",  { params: { session_id } });
+    let { data: { id } } = await _axios.get("/account", { params: { session_id } });
     this.setState({ account_id: id });
+  }
+
+  fetchLists = async () => {
+    console.log('fetchLists');
+    const { account_id, session_id } = this.state;
+
+    let {data: {results} } = await _axios.get(`/account/${account_id}/lists`, { params: { session_id } });
+    this.setState({ lists: results });
+    console.log("setting state for lists to: ", results);
   }
 
   makeSession = async () => {
@@ -61,29 +77,48 @@ class App extends Component {
     }
   }
 
+  onListSelected = async (list_id) => {
+    console.log('On List Selected', list_id);
+    this.setState({selected_list_id: list_id});
+    this.fetchListItems(list_id);
+  }
+
+  fetchListItems = async (list_id) => {
+    let resp = await _axios.get(`/list/${list_id}`);
+
+    const { data: { items } } = resp;
+    this.setState({ movies: items });
+  }
 
   render() {
 
-    const {request_token, account_id, session_id, require_authorization} = this.state;
+    const {request_token, account_id, session_id, require_authorization, lists, movies } = this.state;
     console.log("state: ", this.state);
-
-    if (!request_token) {
-      this.getRequestToken();
-      return <div>Loading...</div>
-    } else if (require_authorization == true) {
-      return [
-        <button onClick={this.authorize}>Authorize</button>,
-      ]
-    } else if (request_token && !session_id){
-      // if ! authorized
-      return [<button onClick={this.makeSession}>Make session</button>]
+    if (!session_id) {
+      if (!request_token) {
+        this.getRequestToken();
+        return <div>Loading...</div>
+      } else if (require_authorization == true) {
+        return [
+          <button onClick={this.authorize}>Authorize</button>,
+        ]
+      } else if (request_token && !session_id){
+        // if ! authorized
+        return [<button onClick={this.makeSession}>Make session</button>]
+      }
     }
-
 
     if (!account_id) {
       this.fetchAccountDetails();
       return <div>Fetching account details</div>
       // return <div>Make an account</div>
+    }
+
+    if (!lists) {
+      this.fetchLists();
+      return <h1>Fetching lists</h1>
+    } else {
+      console.log('Lists have been fetched!', lists);
     }
 
     return (
@@ -98,9 +133,9 @@ class App extends Component {
             <img src={logo} className="app-logo" alt="logo" />
             <h1 className="app-title">Welcome to React</h1>
           </header>
-          <p className="app-intro">
-            To get started, edit <code>src/App.js</code> and save to reload.
-          </p>
+          <ListPicker lists={this.state.lists}
+            onListSelected={this.onListSelected} />
+          <MovieList movies={this.state.movies} />
         </div>
       </div>
     );
