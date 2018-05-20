@@ -54,6 +54,8 @@ class App extends Component {
     let {data: {results} } = await _axios.get(`/account/${account_id}/lists`, { params: { session_id } });
     this.setState({ lists: results });
     console.log("setting state for lists to: ", results);
+
+    this.onListSelected(results[0].id)
   }
 
   makeSession = async () => {
@@ -91,7 +93,6 @@ class App extends Component {
   }
 
   render() {
-
     const {request_token, account_id, session_id, require_authorization, lists, movies } = this.state;
     console.log("state: ", this.state);
     if (!session_id) {
