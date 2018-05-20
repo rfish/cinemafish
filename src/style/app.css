@@ -26,6 +26,11 @@
    font-size: medium;
 }
 
+.movieGrid {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+}
+
 @keyframes app-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import logo from '../images/logo.svg';
+import logo from '../images/logo.jpg';
 import '../style/app.css';
 
 import Auth from './auth';
 import MovieList from './movie_list';
+import MovieGrid from './movie_grid';
 import ListPicker from './list_picker'
 
 import _axios from '../util/networkInterface.js';
@@ -132,11 +133,13 @@ class App extends Component {
         <div className="app">
           <header className="app-header">
             <img src={logo} className="app-logo" alt="logo" />
-            <h1 className="app-title">Welcome to React</h1>
+            <h1 className="app-title">Cinema Fish</h1>
+            <ListPicker lists={this.state.lists}
+              onListSelected={this.onListSelected} />
+            <br />
           </header>
-          <ListPicker lists={this.state.lists}
-            onListSelected={this.onListSelected} />
-          <MovieList movies={this.state.movies} />
+          <br />
+          <MovieGrid movies={this.state.movies} />
         </div>
       </div>
     );
