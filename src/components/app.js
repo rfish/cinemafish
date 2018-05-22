@@ -9,7 +9,7 @@ import ListPicker from './list_picker'
 import _axios from '../util/networkInterface.js';
 import _ from 'lodash';
 
-import tmdb  from '../models'
+import tmdb  from '../models/the_movie_db_state'
 import {observer}  from 'mobx-react';
 
 @observer

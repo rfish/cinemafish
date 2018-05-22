@@ -1,6 +1,8 @@
-import { observable, autorun, action, runInAction } from 'mobx';
+import { observable, autorun, action, runInAction, configure, flow } from 'mobx';
 
 import _axios from '../util/networkInterface.js';
+
+configure({enforceActions: false});
 
 const LS_SESSION_KEY = 'LS_SESSION_KEY';
 
@@ -13,43 +15,34 @@ class TheMovieDBState {
   @action.bound
   getRequestToken = async () => {
     let {data: {request_token} } = await _axios.get("/authentication/token/new");
-    runInAction(() => {
-      this.request_token = request_token;
-    });
+    this.request_token = request_token;
   }
 
   @action.bound
-  authorize = async () => {
+  authorize = () => {
     const { request_token } = this;
     console.log(request_token);
     const url = `https://www.themoviedb.org/authenticate/${request_token}`;
     console.log(url);
     window.open(url, '_blank');
-    runInAction(() => {
-      this.require_authorization = false
-    })
+    this.require_authorization = false
   }
 
   @action.bound
-  getRequestToken = async () => {
-    let {data: {request_token} } = await _axios.get("/authentication/token/new");
-    runInAction(() => {
-      this.request_token = request_token;
-    });
-  }
+  getRequestToken = flow(function* () {
+    let {data: {request_token} } = yield _axios.get("/authentication/token/new");
+    this.request_token = request_token;
+  });
 
   @action.bound
-  fetchAccountDetails = async () => {
+  fetchAccountDetails = flow(function* () {
     const { session_id } = this;
-    let { data: { id } } = await _axios.get("/account", { params: { session_id } });
-    runInAction(() => {
-      this.account_id = id;
-    });
-
-  }
+    let { data: { id } } = yield _axios.get("/account", { params: { session_id } });
+    this.account_id = id;
+  });
 
   @action.bound
-  makeSession = async () => {
+  makeSession = flow(function* () {
     console.log('Make session')
 
     let existingSessionId = localStorage.getItem(LS_SESSION_KEY);
@@ -58,20 +51,17 @@ class TheMovieDBState {
     const { request_token } = this;
 
     try {
-      let resp = await _axios.get('/authentication/session/new', { params: { request_token } });
-      runInAction(() => {
+      let resp = yield _axios.get('/authentication/session/new', { params: { request_token } });
+
         const { data: { session_id } } = resp;
         this.session_id = session_id;
         localStorage.setItem(LS_SESSION_KEY, session_id);
-      });
     } catch (error) {
       // we are probably not authorized
-      runInAction(() => {
-        this.require_authorization = true;
-      });
+      this.require_authorization = true;
     }
-  }
+  });
 }
 
 const singleton = new TheMovieDBState();
-export default singleton;
+export default singleton;;
