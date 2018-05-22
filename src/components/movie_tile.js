@@ -8,6 +8,8 @@ const MovieTile = ({movie}) => {
   const link = `https://www.themoviedb.org/movie/${movie.id}`
   console.log(thumbnail_path);
 
+  const {id, title = 'N/A', popularity, overview}  = movie;
+
   return (
     <a href={link} window="themoviedb">
       <div className="movieTile list-group-item">
@@ -15,10 +17,10 @@ const MovieTile = ({movie}) => {
           <img src={thumbnail_path} />
         </div>
         <div class="col-sm-8">
-          <div className="movieId">{movie.id}</div>
-          <div className="movieTitle">{movie.title}</div>
-          <div className="moviePopularity">{movie.popularity}</div>
-          <div className="movieSynopsis">{movie.overview}</div>
+          <div className="movieId">{id}</div>
+          <div className="movieTitle">{title}</div>
+          <div className="moviePopularity">{popularity}</div>
+          <div className="movieSynopsis">{overview}</div>
         </div>
       </div>
     </a>
