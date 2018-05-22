@@ -3,12 +3,13 @@ import logo from '../images/logo.jpg';
 import '../style/app.css';
 
 import Auth from './auth';
-import MovieList from './movie_list';
 import MovieGrid from './movie_grid';
 import ListPicker from './list_picker'
 
 import _axios from '../util/networkInterface.js';
 import _ from 'lodash';
+
+import appstate  from '../models'
 
 class App extends Component {
   constructor(props) {
@@ -125,7 +126,10 @@ class App extends Component {
 
     return (
       <div>
-        <Auth key={this.state.account_id}
+      {appstate.a}
+      <button onClick={() => appstate.a = 8} />
+
+        {/*}<Auth key={this.state.account_id}
               account_id={this.state.account_id}
               session_id={this.state.session_id}
               request_token={this.state.request_token}
@@ -140,7 +144,7 @@ class App extends Component {
           </header>
           <br />
           <MovieGrid movies={this.state.movies} />
-        </div>
+        </div>*/}
       </div>
     );
   }
