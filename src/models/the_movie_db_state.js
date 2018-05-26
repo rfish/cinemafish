@@ -13,12 +13,6 @@ class TheMovieDBState {
   @observable require_authorization = true
 
   @action.bound
-  getRequestToken = async () => {
-    let {data: {request_token} } = await _axios.get("/authentication/token/new");
-    this.request_token = request_token;
-  }
-
-  @action.bound
   authorize = () => {
     const { request_token } = this;
     console.log(request_token);

@@ -5,11 +5,14 @@ import '../style/app.css';
 import Auth from './auth';
 import MovieGrid from './movie_grid';
 import ListPicker from './list_picker'
+import AddToListForm from './add_to_list_form'
+import MoviePicker from './movie_picker'
 
 import _axios from '../util/networkInterface.js';
 import _ from 'lodash';
 
 import tmdb  from '../models/the_movie_db_state'
+import wizard  from '../models/movie_wizard'
 import {observer}  from 'mobx-react';
 
 @observer
@@ -23,10 +26,10 @@ class App extends Component {
     this.state = {
       selectedList: null,
       lists: null,
-      movies: null
+      movies: null,
+      movies_to_add: null
     };
   }
-
 
   fetchLists = async () => {
     console.log('fetchLists');
@@ -39,18 +42,40 @@ class App extends Component {
     this.onListSelected(results[0].id)
   }
 
-
   onListSelected = async (list_id) => {
     console.log('On List Selected', list_id);
     this.setState({selected_list_id: list_id});
     this.fetchListItems(list_id);
+    wizard.setCurrentList(list_id);
   }
 
   fetchListItems = async (list_id) => {
     let resp = await _axios.get(`/list/${list_id}`);
 
     const { data: { items } } = resp;
+    items.sort(function(a, b){
+      var dateA=new Date(a.release_date), dateB=new Date(b.release_date)
+      return dateB-dateA //sort by date descending
+    });
     this.setState({ movies: items });
+  }
+
+  onAddToListSubmit = async (textarea_value) => {
+    if (textarea_value) {
+      let movies_to_search_for = textarea_value.split("\n");
+      this.setState({movies_to_add: movies_to_search_for});
+      wizard.setMovieLookupQueue(movies_to_search_for);
+    }
+  }
+
+  onMoviePicked = (movie) => {
+    console.log('onMoviePicked: ', movie);
+    wizard.selectMovie(movie);
+  }
+
+  onCancelPicker = () => {
+    console.log('onCancelPicker');
+    wizard.nextMovie();
   }
 
   render() {
@@ -84,23 +109,19 @@ class App extends Component {
       console.log('Lists have been fetched!', lists);
     }
 
+    if (wizard.movie_lookup_queue && wizard.movie_lookup_queue.length > 0) {
+      return <MoviePicker name={wizard.current_movie_name}
+                movies={wizard.current_movie_choices}
+                onMoviePicked={this.onMoviePicked}
+                onCancel={this.onCancelPicker} />
+    }
+
     return (
       <div>
-<<<<<<< HEAD
-      {appstate.a}
-      <button onClick={() => appstate.a = 8} />
-
-        {/*}<Auth key={this.state.account_id}
-              account_id={this.state.account_id}
-              session_id={this.state.session_id}
-              request_token={this.state.request_token}
-=======
-
         <Auth key={account_id}
               account_id={account_id}
               session_id={session_id}
               request_token={request_token}
->>>>>>> 28844a7e28e89b0a3fb6debf3d2ceeb4fb152fd8
         />
         <div className="app">
           <header className="app-header">
@@ -111,8 +132,10 @@ class App extends Component {
             <br />
           </header>
           <br />
+
           <MovieGrid movies={this.state.movies} />
-        </div>*/}
+          <AddToListForm onAddToListSubmit={this.onAddToListSubmit} />
+        </div>
       </div>
     );
   }
