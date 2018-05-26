@@ -53,6 +53,10 @@ class App extends Component {
     let resp = await _axios.get(`/list/${list_id}`);
 
     const { data: { items } } = resp;
+    items.sort(function(a, b){
+      var dateA=new Date(a.release_date), dateB=new Date(b.release_date)
+      return dateB-dateA //sort by date descending
+    });
     this.setState({ movies: items });
   }
 
@@ -67,6 +71,11 @@ class App extends Component {
   onMoviePicked = (movie) => {
     console.log('onMoviePicked: ', movie);
     wizard.selectMovie(movie);
+  }
+
+  onCancelPicker = () => {
+    console.log('onCancelPicker');
+    wizard.nextMovie();
   }
 
   render() {
@@ -103,7 +112,8 @@ class App extends Component {
     if (wizard.movie_lookup_queue && wizard.movie_lookup_queue.length > 0) {
       return <MoviePicker name={wizard.current_movie_name}
                 movies={wizard.current_movie_choices}
-                onMoviePicked={this.onMoviePicked} />
+                onMoviePicked={this.onMoviePicked}
+                onCancel={this.onCancelPicker} />
     }
 
     return (

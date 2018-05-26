@@ -8,9 +8,9 @@ const MovieGridTile = ({movie, onMoviePicked}) => {
 
   if (onMoviePicked) {
     console.log(movie);
-    return <div onClick={onMoviePicked(movie)}>
-      <img src={thumbnail_path} title={movie.name} />
-    </div>
+    return <a onClick={() => { onMoviePicked(movie); }} border="5">
+      <img src={thumbnail_path} title={movie.title} />
+    </a>
   } else {
     return (
       <a href={link} target="themoviedb">

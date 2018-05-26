@@ -16,7 +16,6 @@ class AddToListForm extends React.Component {
   }
 
   handleSubmit(event) {
-    alert('Looking up movies: ' + this.state.value);
     event.preventDefault();
     this.props.onAddToListSubmit(this.state.value);
   }

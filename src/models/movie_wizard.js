@@ -15,7 +15,7 @@ class MovieWizard {
 
   @action.bound
   lookupMovieByName = flow(function* () {
-    const { current_movie_name } = this;
+    const { current_movie_name, current_movie_choices } = this;
     console.log('lookupMovieByName', current_movie_name);
 
     let { data: { results } } = yield _axios.get("/search/movie", { params: { query: current_movie_name } });
@@ -29,17 +29,20 @@ class MovieWizard {
   nextMovie = () => {
     console.log('nextMovie');
     this.selected_movie = null;
+    this.current_movie_choices = null;
     if (this.movie_lookup_queue.length > 0) {
       console.log('movie_lookup_queue: ', this.movie_lookup_queue);
       this.current_movie_name = this.movie_lookup_queue[0];
-      this.movie_lookup_queue.unshift();
+      this.movie_lookup_queue.shift();
       this.lookupMovieByName();
+    } else {
+      this.movie_lookup_queue = null;
     }
   }
 
   @action.bound
   selectMovie = flow(function* (movie) {
-    console.log('selectMovie', movie);
+    console.log('selectMovie', movie.id);
     const { session_id } = tmdb;
 
     this.selected_movie = movie;
@@ -47,8 +50,16 @@ class MovieWizard {
     const url = `/list/${this.current_list_id}/add_item`;
 
     let body = { "media_id": this.selected_movie.id }
-    let { data: { status_code } } = yield _axios.post(url, body, { params: { session_id } });
-    if (status_code == 201) {
+    try {
+      let { data: { status_code } } = yield _axios.post(url, body, { params: { session_id } });
+      if (status_code == 201) {
+        this.nextMovie();
+      } else {
+        console.log('There may have been a problem.', status_code);
+        this.nextMovie();
+      }
+    } catch (err) {
+      console.log("Error caught trying to select movie: ", movie.title, err);
       this.nextMovie();
     }
   });
@@ -62,7 +73,14 @@ class MovieWizard {
   @action.bound
   setMovieLookupQueue = (movie_lookup_queue) => {
     console.log('setMovieLookupQueue', movie_lookup_queue);
-    this.movie_lookup_queue = movie_lookup_queue;
+    this.movie_lookup_queue = movie_lookup_queue.sort(function(a, b){
+      var nameA=a.title.toLowerCase(), nameB=b.title.toLowerCase();
+      if (nameA < nameB) //sort string ascending
+          return -1
+      if (nameA > nameB)
+          return 1
+      return 0 //default return value (no sorting)
+    });
     this.nextMovie();
   }
 }
